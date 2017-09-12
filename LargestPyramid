@@ -1,0 +1,304 @@
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.util.Iterator;
+import java.util.function.Consumer;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+@SuppressWarnings("Duplicates")
+public class Solution {
+
+        public static void main(String[] args) throws IOException {
+        Scanner in= new Scanner(System.in);
+        fillPyramidSum();
+        //FastReader in=new FastReader();
+        int q = in.nextInt();
+        for(int a0 = 0; a0 < q; a0++){
+            int n = in.nextInt();
+            int m = in.nextInt();
+            int k = in.nextInt();
+            Array2D<Integer> h = new Array2D<>(n,m,new Integer[n][m]);
+            for(int h_i = 0; h_i < n; h_i++){
+                for(int h_j = 0; h_j < m; h_j++){
+                    h.set(h_i,h_j, in.nextInt());
+                }
+            }
+            int max_size=Math.min(n,m);
+            int ans=0;
+            if (max_size%2==0) max_size=max_size-1;
+            outerloop:
+            for (int size = max_size; size >0 ; size=size-2) {
+                for (int i = 0; i+size <=n ; i++) {
+                    for (int j = 0; j+size<=m; j++) {
+                        if (checkSize(h, i, j, size, k)) {
+                            ans = size/2+1;
+                            break outerloop;
+                        }
+                    }
+                }
+            }
+            System.out.println(ans);
+            // Write Your Code Here
+        }
+    }
+    static final int MAX_LEN=176;
+    static int eval_len=0;
+    static long[] pyramidSums=new long[MAX_LEN];
+    static
+    {
+        eval_len=2;
+        pyramidSums[0]=1;
+        pyramidSums[1]=10;
+    }
+    static final  long M=1000000000000l;
+    static long pyramidSum(int n){
+        if (n%2==0) return M;
+        int s=n/2;
+        if (s<eval_len)
+        {
+            return pyramidSums[s];
+        }
+        else {
+            pyramidSums[s] =(n<<1)+((n-2)<<1)+pyramidSum(n-2)+(n-2)*(n-2);
+            ++eval_len;
+            return pyramidSums[s];
+        }
+    }
+    static void fillPyramidSum(){
+        for (int i = 2; i <MAX_LEN ; i++) {
+            int n=(i<<1)+1;
+            ++eval_len;
+            pyramidSums[i]=(n<<1)+((n-2)<<1)+pyramidSums[i-1]+(n-2)*(n-2);
+        }
+    }
+    private static boolean checkPyramidValidity(Array2D<Integer> a,int m){
+        if (m==1)
+        {
+            return a.get(0,0)<2;
+        }
+        int s=m/2+1;
+        for (int i = 0; i <s ; i++) {
+            for (int j = 0; j <s ; j++) {
+                int maxH=getHeight(i,j,s);
+                if (a.get(i,j)>maxH) return false;
+                if (a.get(m-i-1,j)>maxH) return false;
+                if (a.get(m-i-1,m-j-1)>maxH) return false;
+                if (a.get(i,m-j-1)>maxH) return false;
+            }
+        }
+        return true;
+       /* return a.stream().parallel().allMatch(
+                node -> (Integer)node.val<=getHeight(node.i,node.j,s)
+        );*/
+
+    }
+    private static int getHeight(int i, int j, int s)
+    {
+        if (i>=s) i=2*s-i-2;
+        if (j>=s) j=2*s-j-2;
+        return Math.min(i+1,j+1);
+    }
+    private static void test()
+    {
+        for (int i = 1; i < 100; i+=2) {
+            Array2D<Integer> table=generatePyramide(i);
+            //System.out.println(table.toString());
+            long evalSum=pyramidSum(i);
+            long sum=table.streamValues().mapToInt(Integer::intValue).sum();
+            System.out.println("Eval sum="+evalSum+"sum="+sum);
+        }
+    }
+    private static Array2D<Integer> generatePyramide(int m)
+    {
+        Array2D<Integer> table=new Array2D<>(m,m,new Integer[m][m]).fill(0);
+        table.forEach(node -> node.val=getHeight(node.i,node.j, m/2+1));
+        return table;
+    }
+    static boolean checkSize(Array2D<Integer> a, int ibegin, int jbegin, int m, long MaxSum){
+
+        if (m%2==0) return false;
+        a.slice(ibegin,jbegin,m,m);
+        if (!checkPyramidValidity(a,m))
+        {
+            a.reset();
+            return false;
+        }
+        long sumSlice=a.streamValues().mapToInt(Integer::intValue).sum();
+        return pyramidSum(m)-sumSlice<=MaxSum;
+    }
+    public static class Node<V extends Comparable<V>> implements Comparable<V>
+    {
+        final int i,j;
+        V val;
+        public Node(int i, int j, V val) {
+            this.i = i;
+            this.j = j;
+            this.val = val;
+        }
+        @Override
+        public int compareTo(V o) {
+            return val.compareTo(o);
+        }
+    }
+
+    //Get it over.
+    public static class Array2D<V extends Comparable<V>> implements Iterable<Node>{
+        int n, m;
+        int iBegin=0,jBegin=0;
+        final int n_MAX, m_MAX;
+        protected V[][] data;
+        public Array2D(int n, int m, V[][] input_arr) {
+            this.n = n;
+            this.m = m;
+            this.n_MAX=n;
+            this.m_MAX=m;
+            /*@SuppressWarnings("unchecked")
+            V[][] tmpArray
+                    = (V[][]) new Object[n][m];*/
+            data = input_arr;
+        }
+
+        public Array2D<V> fill(V defaultValue)
+        {
+            for (int i = iBegin; i < n+iBegin; i++) {
+                for (int i1 = jBegin; i1 < m+jBegin; i1++) {
+                    data[i][i1]=defaultValue;
+                }
+            }
+            return this;
+        }
+        public V get(int i, int j)
+        {
+            return data[i+iBegin][j+jBegin];
+        }
+        public Array2D<V> set(int i, int j, V val)
+        {
+            data[i+iBegin][j+jBegin]=val;
+            return this;
+        }
+
+        public int getSizeH() {
+            return n;
+        }
+
+        public int getSizeW() {
+            return m;
+        }
+        public Array2D<V> reset()
+        {
+            this.m=m_MAX;
+            this.n=n_MAX;
+            this.iBegin=0;
+            this.jBegin=0;
+            return this;
+        }
+        public Array2D<V> slice(int iBegin, int jBegin, int newH, int newW) {
+            this.iBegin=iBegin;
+            this.jBegin=jBegin;
+            this.n=newH;
+            this.m=newW;
+            return this;
+        }
+        @Override
+        public Iterator<Node> iterator() {
+            Iterator<Node> it = new Iterator<Node>() {
+                private int i = 0;
+                private int j = 0;
+                @Override
+                public boolean hasNext() {
+                    return (i < n && j<m );
+                }
+                @Override
+                public Node<V> next() {
+                    Node<V> res=new Node<V>(i,j,data[i+iBegin][j+jBegin]);
+                    if (j==m-1){
+                        j=0;
+                        i++;
+                    }
+                    else {
+                        ++j;
+                    }
+                    return res;
+                }
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
+            return it;
+        }
+          public Iterator<V> iterValues() {
+            Iterator<V> it = new Iterator<V>() {
+                private int i = 0;
+                private int j = 0;
+                @Override
+                public boolean hasNext() {
+                    return (i < n && j<m );
+                }
+                public V next() {
+                    V v=data[i+iBegin][j+jBegin];
+                    if (j==m-1){
+                        j=0;
+                        i++;
+                    }
+                    else {
+                        ++j;
+                    }
+                    return v;
+                }
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
+            return it;
+        }
+
+        @Override
+        public void forEach(Consumer<? super Node> action) {
+            Iterator<Node> i = iterator();
+            while (i.hasNext())
+            {
+                Node node=i.next();
+                action.accept(node);
+                data[node.i+iBegin][node.j+jBegin]= (V) node.val;
+            }
+        }
+        Stream<Node> stream()
+        {
+            return StreamSupport.stream(this.spliterator(),true);
+        }
+        Stream<V> streamValues()
+        {
+            return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterValues(), Spliterator.CONCURRENT),
+                    true);
+        }
+        @Override
+        public String toString() {
+            StringBuilder  sb=new StringBuilder();
+            sb.append("Array2D \n" +
+                    "height=" + n +
+                    ", width=" + m +
+                    ", iShift=" + iBegin +
+                    ", jShift=" + jBegin+
+                    "\n arr=");
+            for (int i = 0; i < n; i++) {
+                sb.append("\n");
+                for (int j = 0; j <m ; j++) {
+                    sb.append(data[i + iBegin][j + jBegin]).append(" ");
+                };
+            }
+            return sb.toString();
+        }
+
+        @Override
+        public Spliterator<Node> spliterator() {
+
+            return Spliterators.spliteratorUnknownSize(iterator(), Spliterator.CONCURRENT);
+        }
+
+    }
+}
