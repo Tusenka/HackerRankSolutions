@@ -1,0 +1,148 @@
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+
+//http://www.hackerrank.com/contests/hourrank-23/challenges/halloween-sale/copy-from/1303223490
+public class Solution {
+
+public static void main(String[] args) throws IOException {
+        //Scanner s = new Scanner(System.in);
+        FastReader s=new FastReader();
+        try (PrintWriter fastWriter = new PrintWriter(System.out,true)) {
+            int p=s.nextInt();
+            int d=s.nextInt();
+            int m=s.nextInt();
+            int sum=s.nextInt();
+            int value=getCount(p,d,m,sum);
+            System.out.println(value);
+        }
+    }
+    private static int getNumFromSumOfAProgress(int a1, int d, int sum, boolean ceil) {
+        int a=d;
+        long b=2*a1-d;
+        long c=-2*sum;
+        double Ds=Math.sqrt(b*b - 4* a*c);
+        double ans=(Ds-b)/(2*a);
+        return (int) (ceil?Math.ceil(ans):ans);
+    }
+    private static long getSumOfAProgress(int a1, int d, int n) {
+        return  (2*a1+d*(n-1))*n/2;
+    }
+    private static int getNumFromSumOfAProgress(int a1, int d, int sum) {
+        return getNumFromSumOfAProgress(a1, d, sum, false);
+    }
+    private static int getNumFromElOfAProgress(int a1, int d, int an) {
+        return (an-a1)/d+1;
+    }
+    private static int getCount(int a1, int d,int m, int sum ) {
+        int n1= getNumFromElOfAProgress(a1,-d,m);
+        int strictSum= (int) getSumOfAProgress(a1,-d,n1);
+        if (strictSum>=sum)
+        {
+            n1=getNumFromSumOfAProgress(a1,-d,sum);
+            return n1;
+        }
+        int n2= (sum-strictSum)/m;
+        return n1+n2;
+
+    }
+    //NT
+    static class FastReader {
+        final private int BUFFER_SIZE = 1 << 16;
+        private DataInputStream din;
+        private byte[] buffer;
+        private int bufferPointer, bytesRead;
+
+        public FastReader() {
+            din = new DataInputStream(System.in);
+            buffer = new byte[BUFFER_SIZE];
+            bufferPointer = bytesRead = 0;
+        }
+
+        public FastReader(String file_name) throws IOException {
+            din = new DataInputStream(new FileInputStream(file_name));
+            buffer = new byte[BUFFER_SIZE];
+            bufferPointer = bytesRead = 0;
+        }
+
+        public String readLine() throws IOException {
+            byte[] buf = new byte[64];
+            int cnt = 0, c;
+            while ((c = read()) != -1) {
+                if (c == '\n') break;
+                buf[cnt++] = (byte) c;
+            }
+            return new String(buf, 0, cnt);
+        }
+        public long[] nextLongArr(int n) throws IOException {
+            long[] result=new long[n];
+            for (int i = 0; i < n; i++) {
+                result[i]=this.nextLong();
+            }
+            return result;
+        }
+        public int[] nextIntArr(int n) throws IOException {
+            int[] result=new int[n];
+            for (int i = 0; i < n; i++) {
+                result[i]=this.nextInt();
+            }
+            return result;
+
+        }
+        public int nextInt() throws IOException {
+            int ret = 0;
+            byte c = read();
+            while (c <= ' ') c = read();
+            boolean neg = (c == '-');
+            if (neg) c = read();
+            do {
+                ret = ret * 10 + c - '0';
+            } while ((c = read()) >= '0' && c <= '9');
+            if (neg) return -ret;
+            return ret;
+        }
+
+        public long nextLong() throws IOException {
+            long ret = 0;
+            byte c = read();
+            while (c <= ' ') c = read();
+            boolean neg = (c == '-');
+            if (neg) c = read();
+            do {
+                ret = ret * 10 + c - '0';
+            } while ((c = read()) >= '0' && c <= '9');
+            if (neg) return -ret;
+            return ret;
+        }
+
+        public double nextDouble() throws IOException {
+            double ret = 0, div = 1;
+            byte c = read();
+            while (c <= ' ') c = read();
+            boolean neg = (c == '-');
+            if (neg) c = read();
+            do {
+                ret = ret * 10 + c - '0';
+            } while ((c = read()) >= '0' && c <= '9');
+            if (c == '.') while ((c = read()) >= '0' && c <= '9') ret += (c - '0') / (div *= 10);
+            if (neg) return -ret;
+            return ret;
+        }
+
+        private void fillBuffer() throws IOException {
+            bytesRead = din.read(buffer, bufferPointer = 0, BUFFER_SIZE);
+            if (bytesRead == -1) buffer[0] = -1;
+        }
+
+        public byte read() throws IOException {
+            if (bufferPointer == bytesRead) fillBuffer();
+            return buffer[bufferPointer++];
+        }
+
+        public void close() throws IOException {
+            if (din == null) return;
+            din.close();
+        }
+    }
+}
