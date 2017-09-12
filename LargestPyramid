@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-@SuppressWarnings("Duplicates")
+//https://www.hackerrank.com/contests/hourrank-23/challenges/largest-pyramid
 public class Solution {
 
         public static void main(String[] args) throws IOException {
